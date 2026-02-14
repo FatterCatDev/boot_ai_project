@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from google import genai
 import argparse
+from google.genai import types
 
 load_dotenv()
 try:
@@ -15,11 +16,12 @@ client = genai.Client(api_key=api_key)
 parser = argparse.ArgumentParser(description="Chatbot")
 parser.add_argument("user_prompt", type=str, help="User prompt")
 args = parser.parse_args()
+messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
 def main():
     response = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents=args.user_prompt,
+        contents=messages
     )
 
     if response.usage_metadata is None:
