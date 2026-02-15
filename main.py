@@ -3,6 +3,9 @@ from dotenv import load_dotenv
 from google import genai
 import argparse
 from google.genai import types
+from system_prompt.prompts import system_prompt
+from config import modle_name
+from call_function import available_functions
 
 load_dotenv()
 try:
@@ -23,8 +26,13 @@ messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)]
 
 def main():
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=messages
+        model=modle_name,
+        contents=messages,
+        config=types.GenerateContentConfig(
+            tools=[available_functions],
+            system_instruction=system_prompt,
+            temperature=0.7,
+            ),
     )
 
     if response.usage_metadata is None:
@@ -39,8 +47,15 @@ def main():
         print(f"Prompt tokens: {prompt_tokens}")
         print(f"Response tokens: {response_tokens}")
         print("Total tokens:", total_tokens)
+        print("------------------------")
 
-    print(response.text)
+    if response.function_calls:
+        for call in response.function_calls:
+            print(f"Calling function: {call.name}({call.args})")
+    else:
+        print(response.text)  # Print the response text if there are no function calls
+
+#    print(response.text)
 
 
 if __name__ == "__main__":
