@@ -25,7 +25,7 @@ def run_python_file(working_directory, file_path_relative, args=None):
     try:
         command = ["python", target_file]
         result = subprocess.run(
-            command, 
+            command + (args if args else []), 
             cwd=working_dir_abs, 
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -37,7 +37,7 @@ def run_python_file(working_directory, file_path_relative, args=None):
             return "No output produced"
         else:
             output = f"STDOUT: {result.stdout.strip()} "
-            error = f"STDERR: {result.stderr.strip()} "
+            error = f"STDERR: {(result.stderr.strip() if result.stderr.strip() else 'None')} "
             combined_output = "\n".join(filter(None, [output, error]))
 
         if result.returncode != 0:
