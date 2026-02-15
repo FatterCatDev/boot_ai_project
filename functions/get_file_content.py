@@ -1,20 +1,25 @@
 import os
 from config import MAX_CHARS
-# from google.genai import types
+from google.genai import types
 
-# schema_get_file_content = types.FunctionDeclaration(
-#     name="get_file_content",
-#     description="Returns the content of a file in a specified directory relative to the working directory",
-#     parameters=types.Schema(
-#         type=types.Type.OBJECT,
-#         properties={
-#             "file_path": types.Schema(
-#                 type=types.Type.STRING,
-#                 description="File path to read from, relative to the working directory (default is the working directory itself)",
-#             ),
-#         },
-#     ),
-# )
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description="Returns content of a file in a specified file path relative to the working directory with file size and directory status",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "working_directory": types.Schema(
+                type=types.Type.STRING,
+                description="Base working directory from which to read the file",
+            ),
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path to read from",
+            ),
+        },
+        required=["working_directory"]
+    ),
+)
 
 def get_file_content(working_directory, file_path="."):
     if file_path==".":

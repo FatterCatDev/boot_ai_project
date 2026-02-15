@@ -9,13 +9,14 @@ schema_get_files_info = types.FunctionDeclaration(
         properties={
             "working_directory": types.Schema(
                 type=types.Type.STRING,
-                description="The base working directory from which to list files. The target directory must be within this working directory.",
+                description="Base working directory from which to list files",
             ),
             "directory": types.Schema(
                 type=types.Type.STRING,
-                description="The directory to list files from, relative to the working directory. Use '.' for the current directory.",
+                description="File path to read from",
             ),
         },
+        required=["working_directory"]
     ),
 )
 

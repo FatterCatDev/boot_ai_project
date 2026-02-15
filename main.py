@@ -5,7 +5,7 @@ import argparse
 from google.genai import types
 from system_prompt.prompts import system_prompt
 from config import modle_name
-from call_function import available_functions
+from call_function import available_functions, call_function
 
 load_dotenv()
 try:
@@ -41,17 +41,24 @@ def main():
     prompt_tokens = response.usage_metadata.prompt_token_count
     response_tokens = response.usage_metadata.candidates_token_count
     total_tokens = response.usage_metadata.total_token_count
-
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens: {prompt_tokens}")
-        print(f"Response tokens: {response_tokens}")
-        print("Total tokens:", total_tokens)
-        print("------------------------")
+    function_list = []
 
     if response.function_calls:
         for call in response.function_calls:
-            print(f"Calling function: {call.name}({call.args})")
+            function_call_result = call_function(call, args.verbose)
+            if not function_call_result.parts:
+                raise RuntimeError("Function call result is missing content parts.")
+            elif not function_call_result.parts[0].function_response:
+                raise RuntimeError("Function call response is missing.")
+            function_list.append(function_call_result.parts[0].function_response.response)
+            if args.verbose:
+                print(f"User prompt: {args.user_prompt}")
+                print(f"Prompt tokens: {prompt_tokens}")
+                print(f"Response tokens: {response_tokens}")
+                print("Total tokens:", total_tokens)
+                print("------------------------")
+                print(f"-> {function_call_result.parts[0].function_response.response}")
+
     else:
         print(response.text)  # Print the response text if there are no function calls
 

@@ -1,29 +1,34 @@
 import subprocess
 import os
-# from google.genai import types
+from google.genai import types
 
-# schema_run_python_file = types.FunctionDeclaration(
-#     name="run_python_file",
-#     description="Runs a Python file in a specified directory relative to the working directory and returns its output or any errors",
-#     parameters=types.Schema(
-#         type=types.Type.OBJECT,
-#         properties={
-#             "file_path": types.Schema(
-#                 type=types.Type.STRING,
-#                 description="File path to run, relative to the working directory",
-#             ),
-#             "args": types.Schema(
-#                 type=types.Type.ARRAY,
-#                 items=types.Schema(type=types.Type.STRING),
-#                 description="Optional list of arguments to pass to the Python file",
-#             ),
-#         },
-#     ),
-# )
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Runs Python file in specified directory relative to the working directory and returns its output or any errors",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "working_directory": types.Schema(
+                type=types.Type.STRING,
+                description="Base working directory from which to run the Python file",
+            ),
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path to run, relative to the working directory",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(type=types.Type.STRING),
+                description="Optional list of arguments to pass to the Python file",
+            ),
+        },
+        required=["working_directory", "file_path"]
+    ),
+)
 
-def run_python_file(working_directory, file_path_relative, args=None):
+def run_python_file(working_directory, file_path, args=None):
     working_dir_abs = os.path.abspath(working_directory)
-    target_file = os.path.abspath(os.path.join(working_dir_abs, file_path_relative))
+    target_file = os.path.abspath(os.path.join(working_dir_abs, file_path))
 
     # Will be True or False
     valid_target_file = os.path.commonpath([working_dir_abs, target_file]) == working_dir_abs
@@ -34,11 +39,11 @@ def run_python_file(working_directory, file_path_relative, args=None):
         ".py" in target_file
         ):
         case (False, _, _):
-            return f'Error: Cannot execute "{file_path_relative}" as it is outside the permitted working directory'
+            return f'Error: Cannot execute "{file_path}" as it is outside the permitted working directory'
         case (_, False, _):
-            return f'Error: "{file_path_relative}" does not exist or is not a regular file'
+            return f'Error: "{file_path}" does not exist or is not a regular file'
         case (_, _, False):
-            return f'Error: "{file_path_relative}" is not a Python file'
+            return f'Error: "{file_path}" is not a Python file'
         case (True, True, True):
             pass  # continue
 
@@ -62,8 +67,8 @@ def run_python_file(working_directory, file_path_relative, args=None):
 
         if result.returncode != 0:
             return f'Error: Process exited with code {result.returncode}'
-        return f'Successfully executed "{file_path_relative}" with output:\n{combined_output}\n---'
+        return f'Successfully executed "{file_path}" with output:\n{combined_output}\n---'
     except subprocess.TimeoutExpired:
-        return f'Error: Execution of "{file_path_relative}" timed out'
+        return f'Error: Execution of "{file_path}" timed out'
     except Exception as e:
         raise RuntimeError(f"Error: executing Python file: {e}")
