@@ -1,52 +1,78 @@
 # Boot Dev AI Project
 
+A learning project for building a small AI agent. It uses Gemini function calling to safely interact with a local workspace and includes a simple calculator CLI to exercise tool calls.
+
 **Overview**
-This repo contains:
-- A Gemini-powered CLI chatbot in `main.py`.
-- A simple expression calculator CLI in `calculator/main.py` with unit tests.
-- A `get_files_info` utility for directory listings in `functions/get_files_info.py`.
+- CLI agent in `main.py` that uses Gemini function calling and a system prompt in `system_prompt/prompts.py`.
+- Tool implementations in `functions/` with safety checks. `call_function.py` forces the working directory to `./calculator`.
+- Calculator CLI in `calculator/main.py` with parsing and rendering in `calculator/pkg/`.
 
 **Requirements**
 - Python 3.12+
-- `uv` (optional, for running scripts with the lockfile)
 - A Gemini API key in `GEMINI_API_KEY`
+- Optional: `uv` for dependency management
 
 **Setup**
 1. Create a `.env` file with your key:
 ```bash
 GEMINI_API_KEY=your_key_here
 ```
-2. Install dependencies (one option):
+2. Install dependencies (choose one):
 ```bash
 uv sync
 ```
+```bash
+python -m pip install .
+```
 
-**Gemini Chatbot**
-Run the CLI chatbot:
+**Agent Usage**
+Run the CLI agent:
 ```bash
-uv run python main.py "Hello from the CLI"
+uv run python main.py "List the files in the calculator directory"
 ```
-Enable verbose token output:
+Enable verbose output (shows function calls and token counts):
 ```bash
-uv run python main.py "Hello" --verbose
+uv run python main.py "Read calculator/main.py" --verbose
 ```
+
+**Available Tool Functions**
+The agent can call these tools (see `functions/`), with the working directory locked to `./calculator` in `call_function.py`:
+- `get_files_info(working_directory, directory=".")`
+- `get_file_content(working_directory, file_path)`
+- `write_file(working_directory, file_path, content)`
+- `run_python_file(working_directory, file_path, args=[])`
 
 **Calculator CLI**
 Run the calculator:
 ```bash
-uv run python calculator/main.py "3 + 5"
+uv run python calculator/main.py "3 + 5 * 2"
 ```
-Output is formatted JSON with the expression and result.
+Notes:
+- Tokens must be space-separated.
+- Supported operators: `+`, `-`, `*`, `/`.
+- Integers only, no parentheses.
 
-**Utilities**
-`get_files_info(working_directory, directory=".")` returns a formatted listing of the target directory, with basic validation and error messages.
+**Configuration**
+See `config.py` for:
+- `modle_name` (Gemini model name)
+- `MAX_CHARS` (max file content returned by `get_file_content`)
+- `LOOP_LIMIT` (max tool-calling iterations)
 
 **Tests**
 Run calculator unit tests:
 ```bash
 uv run python calculator/tests.py
 ```
-Run the `get_files_info` test script:
+Run tool test scripts (print results):
 ```bash
 uv run python test_get_files_info.py
+```
+```bash
+uv run python test_get_file_content.py
+```
+```bash
+uv run python test_run_python_file.py
+```
+```bash
+uv run python test_write_file.py
 ```
